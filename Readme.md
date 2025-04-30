@@ -1,18 +1,18 @@
-# 🧠 Omega Syndrome Probability Problem
+# Omega Syndrome Probability Problem
 
-## 📌 Overview
+## Overview
 This project analyzes the **Omega Syndrome**, a fictional medical condition, using **Bayesian probability** based on observed symptoms. It includes a dynamic **D3.js tree visualizer** that models the conditional paths to calculate the probability of having Omega Syndrome.
 
 ---
 
-## 🌐 Live Visualization
+## Live Visualization
 
 View the interactive Bayes Tree:
-👉 [Problem Statement](./Bayes_ques.html)
+# [Problem Statement](./Bayes_ques.html)
 
 ---
 
-## 🔍 Problem Description
+##  Problem Description
 
 Given:
 - A prior probability: `P(Omega) = 0.001`
@@ -24,7 +24,7 @@ You must calculate the **posterior probability** that a patient has Omega Syndro
 
 ---
 
-## 📊 Bayes’ Theorem
+##  Bayes’ Theorem
 
 \[
 P(Omega | A ∧ B ∧ C) = \frac{P(A ∧ B ∧ C | Omega) \cdot P(Omega)}{P(A ∧ B ∧ C)}
@@ -41,14 +41,14 @@ P(A ∧ B ∧ C) = P(A ∧ B ∧ C | Omega) \cdot P(Omega) + P(A ∧ B ∧ C | �
 
 ---
 
-## 🎯 Sample Output
+##  Sample Output
 
 Using the values above:
 - Posterior probability of Omega Syndrome after observing all 3 markers = **~13.94%**
 
 ---
 
-## 🧠 Features
+##  Features
 
 - Interactive **D3.js Bayes Tree** to explore probability paths
 - Real-time **tooltip probabilities** on each node
