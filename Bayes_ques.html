@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bayes Tree Visualizer</title>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #e2e8f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .content-box {
+      background-color: #1e293b;
+      border: 2px solid #344c5b;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px;
+      width: 90%;
+      max-width: 1000px;
+    }
+
+    .tree-container {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    svg {
+      display: block;
+      margin: auto;
+    }
+
+    .node circle {
+      fill: #00bcd4;
+      stroke: #4dd0e1;
+      stroke-width: 2px;
+    }
+
+    .node text {
+      fill: white;
+      font-size: 12px;
+    }
+
+    .link {
+      fill: none;
+      stroke: #4dd0e1;
+      stroke-width: 2px;
+    }
+
+    .tooltip {
+      position: absolute;
+      background-color: #1e293b;
+      color: #fff;
+      border: 1px solid #4dd0e1;
+      border-radius: 5px;
+      padding: 8px;
+      pointer-events: none;
+      font-size: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="content-box">
+    <h2>Problem Statement</h2>
+    <p>
+      A rare genetic condition, "Omega Syndrome," affects 0.01% of the population.
+      Three genetic markers (A, B, and C) are associated with Omega Syndrome. Tests exist for each marker, but they have varying degrees of accuracy and dependency:
+      <br><br>
+      Marker A has a 95% sensitivity and 98% specificity.<br>
+      Marker B's accuracy depends on whether marker A is present:
+      <ul>
+        <li>If A⁺ → B has 90% sensitivity, 95% specificity.</li>
+        <li>If A⁻ → B has 80% sensitivity, 99% specificity.</li>
+      </ul>
+      Marker C depends on both A and B:
+      <ul>
+        <li>If A⁺ and B⁺ → C: 98% sens, 90% spec</li>
+        <li>If A⁻ and B⁻ → C: 90% sens, 98% spec</li>
+        <li>All others → C: 95% sens, 95% spec</li>
+      </ul>
+      An individual tests A⁺, B⁻, and C⁺. What is the probability they have Omega Syndrome?
+    </p>
+  </div>
+
+  <div class="tree-container">
+    <svg id="bayesTree" width="1000" height="700"></svg>
+  </div>
+
+  <div class="content-box">
+    <h2>Solution Summary</h2>
+    <p>
+      Use Bayes’ Theorem: <br>
+      Let E = event of testing A⁺, B⁻, C⁺. Compute:<br>
+      P(Omega | E) = [P(E | Omega) * P(Omega)] / Total Probability<br><br>
+      Compute all 4 full paths:<br>
+      1. Omega → A⁺ → B⁻ → C⁺ → Prob = 0.0001 * 0.95 * 0.10 * 0.95<br>
+      2. No Omega → A⁺ → B⁻ → C⁺ → Prob = 0.9999 * 0.02 * 0.95 * 0.05<br>
+      Add up both to get denominator, use numerator from (1)<br>
+      Final posterior probability ≈ 9.1%
+    </p>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    const treeData = {
+      name: "Sample Space (1)", prob: 1, children: [
+        {
+          name: "Omega (0.0001)", prob: 0.0001, children: [
+            {
+              name: "A+ (0.95)", prob: 0.95, children: [
+                {
+                  name: "B- (0.10)", prob: 0.10, children: [
+                    {
+                      name: "C+ (0.95)", prob: 0.95
+                    }
+                  ]
+                },
+                {
+                  name: "B+ (0.90)", prob: 0.90
+                }
+              ]
+            },
+            {
+              name: "A- (0.05)", prob: 0.05
+            }
+          ]
+        },
+        {
+          name: "No Omega (0.9999)", prob: 0.9999, children: [
+            {
+              name: "A+ (0.02)", prob: 0.02, children: [
+                {
+                  name: "B- (0.95)", prob: 0.95, children: [
+                    {
+                      name: "C+ (0.05)", prob: 0.05
+                    }
+                  ]
+                },
+                {
+                  name: "B+ (0.05)", prob: 0.05
+                }
+              ]
+            },
+            {
+              name: "A- (0.98)", prob: 0.98
+            }
+          ]
+        }
+      ]
+    };
+
+    const svg = d3.select("#bayesTree"),
+          width = +svg.attr("width"),
+          height = +svg.attr("height"),
+          g = svg.append("g").attr("transform", `translate(${width / 2},40)`);
+
+    const root = d3.hierarchy(treeData);
+    const treeLayout = d3.tree().size([width - 200, height - 100]);
+    treeLayout(root);
+
+    const link = g.selectAll(".link")
+      .data(root.links())
+      .enter().append("path")
+        .attr("class", "link")
+        .attr("d", d3.linkVertical()
+          .x(d => d.x - width/2)
+          .y(d => d.y));
+
+    const node = g.selectAll(".node")
+      .data(root.descendants())
+      .enter().append("g")
+        .attr("class", "node")
+        .attr("transform", d => `translate(${d.x - width/2},${d.y})`);
+
+    node.append("circle")
+      .attr("r", 25)
+      .on("mouseover", function (event, d) {
+        d3.select("#tooltip")
+          .style("left", event.pageX + 10 + "px")
+          .style("top", event.pageY + 10 + "px")
+          .style("display", "block")
+          .html(`<strong>${d.data.name}</strong><br>Probability: ${d.data.prob}`);
+      })
+      .on("mouseout", function () {
+        d3.select("#tooltip").style("display", "none");
+      });
+
+    node.append("text")
+      .attr("dy", 4)
+      .attr("text-anchor", "middle")
+      .text(d => d.data.name.split(" ")[0]);
+  </script>
+</body>
+</html>
